@@ -265,6 +265,32 @@
     document.getElementById('codeInput').value = "";
   }
 
+function getImageUrl(rawImage) {
+  if (!rawImage) {
+    return "https://placehold.co/150x100?text=Gift";
+  }
+
+  let url = String(rawImage).trim();
+
+  // Handle Markdown links if the cell contains [text](URL)
+  const markdownMatch = url.match(/\]\((https?:\/\/[^)]+)\)/);
+  if (markdownMatch) {
+    url = markdownMatch[1];
+  }
+
+  // Extract the Google Drive file ID
+  const match = url.match(
+    /drive\.google\.com\/file\/d\/([^/?]+)/
+  ) || url.match(/[?&]id=([^&]+)/);
+
+  if (match) {
+    return `https://drive.google.com/thumbnail?id=${match[1]}&sz=w500`;
+  }
+
+  // Return other direct image URLs unchanged
+  return url;
+}
+
   // 🎁 Show Gifts
  // 🎁 Show Gifts
 async function showGifts() {
@@ -317,8 +343,7 @@ let quantity = getQuantity(item);
 // opensheet may still show the old quantity: never show more than our own redeem left.
 if (localQty[item.ItemId] !== undefined) quantity = Math.min(quantity, localQty[item.ItemId]);
 if (quantity < 0) return; // negative quantity: hide the item completely
-const imgSrc = item.Image?.trim()
-  || `https://via.placeholder.com/150?text=${encodeURIComponent(item.ItemName || "Gift")}`;
+const imgSrc = getImageUrl(item.Image);
 const remainingPoints = Number(studentPoints) || 0;
 
 const canRedeem =
